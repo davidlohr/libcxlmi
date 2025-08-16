@@ -33,10 +33,6 @@ jobs:
       - name: Black Duck SCA scan
         uses: blackduck-inc/black-duck-security-scan@805cbd09e806b01907bbea0f990723c2bb85abe9
         with:
-          ### ---------- BLACKDUCK SCA SCANNING: REQUIRED FIELDS ----------
-          blackducksca_url: ${{ vars.BLACKDUCKSCA_URL }}
-          blackducksca_token: ${{ secrets.BLACKDUCKSCA_TOKEN }}
-
           ### ---------- COVERITY SCANNING: REQUIRED FIELDS ----------
           coverity_url: ${{ vars.COVERITY_URL }}
           coverity_user: ${{ secrets.COVERITY_USER }}
