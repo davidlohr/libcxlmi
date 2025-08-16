@@ -42,13 +42,4 @@ jobs:
           coverity_user: ${{ secrets.COVERITY_USER }}
           coverity_passphrase: ${{ secrets.COVERITY_PASSPHRASE }}
 
-          ### ---------- POLARIS SCANNING: REQUIRED FIELDS ----------
-          polaris_server_url: ${{ vars.POLARIS_SERVER_URL }}
-          polaris_access_token: ${{ secrets.POLARIS_ACCESS_TOKEN }}
-          polaris_assessment_types: "SCA,SAST"
-
-          ### ---------- SRM SCANNING: REQUIRED FIELDS ----------
-          srm_url: ${{ vars.SRM_URL }}
-          srm_apikey: ${{ secrets.SRM_API_KEY }}
-          srm_assessment_types: "SCA,SAST"
 
