@@ -26,7 +26,7 @@ jobs:
         uses: blackduck-inc/black-duck-security-scan@v2.3.0
         with:
           coverity_url: ${{ vars.COVERITY_URL }}
-          coverity_user: ${{ vars.COVERITY_USER }}
+          coverity_user: ${{ secrets.COVERITY_USER }}
           coverity_passphrase: ${{ secrets.COVERITY_PASSPHRASE }}
 
           # Enable posting comments on Pull Requests
