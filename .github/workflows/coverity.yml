@@ -27,7 +27,7 @@ jobs:
         with:
           email: ${{ secrets.COVERITY_SCAN_EMAIL }}
           token: ${{ secrets.COVERITY_SCAN_TOKEN }}
-          #coverity_url: ${{ vars.COVERITY_URL }}
+          coverity_url: ${{ vars.COVERITY_URL }}
           #coverity_user: ${{ secrets.COVERITY_USER }}
           #coverity_passphrase: ${{ secrets.COVERITY_PASSPHRASE }}
 
