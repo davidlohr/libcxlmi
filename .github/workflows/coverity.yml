@@ -25,9 +25,11 @@ jobs:
       - name: Coverity Security Scan
         uses: vapier/coverity-scan-action@v1
         with:
-          coverity_url: ${{ vars.COVERITY_URL }}
-          coverity_user: ${{ secrets.COVERITY_USER }}
-          coverity_passphrase: ${{ secrets.COVERITY_PASSPHRASE }}
+          email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+          token: ${{ secrets.COVERITY_SCAN_TOKEN }}
+          #coverity_url: ${{ vars.COVERITY_URL }}
+          #coverity_user: ${{ secrets.COVERITY_USER }}
+          #coverity_passphrase: ${{ secrets.COVERITY_PASSPHRASE }}
 
           # Enable posting comments on Pull Requests
           coverity_prComment_enabled: true
