@@ -17,7 +17,7 @@ jobs:
         library-type: [shared, static]
         libdbus: [enabled, disabled]
         mctpd: [codeconstruct, openbmc]
-        sanitizer: [none, address, undefined, "address,undefined"]
+        sanitizer: [none, address, undefined]
         tests: [true, false]
         exclude:
           # Only test mctpd variants when libdbus is enabled
@@ -30,8 +30,6 @@ jobs:
             sanitizer: address
           - tests: false
             sanitizer: undefined
-          - tests: false
-            sanitizer: "address,undefined"
 
     name: >-
       ${{ matrix.compiler }}-${{ matrix.buildtype }}-
