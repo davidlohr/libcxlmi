@@ -117,9 +117,27 @@ jobs:
           # Check that key files were installed
           test -f "${{ github.workspace }}/install-test/usr/local/include/libcxlmi.h"
           if [ "${{ matrix.library-type }}" = "shared" ]; then
-            test -f "${{ github.workspace }}/install-test/usr/local/lib/libcxlmi.so"
+            # Check both possible library paths (with and without architecture subdir)
+            if [ -f "${{ github.workspace }}/install-test/usr/local/lib/libcxlmi.so" ]; then
+              echo "Found library at /usr/local/lib/libcxlmi.so"
+            elif [ -f "${{ github.workspace }}/install-test/usr/local/lib/x86_64-linux-gnu/libcxlmi.so" ]; then
+              echo "Found library at /usr/local/lib/x86_64-linux-gnu/libcxlmi.so"
+            else
+              echo "Library not found in expected locations"
+              find "${{ github.workspace }}/install-test" -name "libcxlmi.so" -type f
+              exit 1
+            fi
           else
-            test -f "${{ github.workspace }}/install-test/usr/local/lib/libcxlmi.a"
+            # Check both possible library paths for static library
+            if [ -f "${{ github.workspace }}/install-test/usr/local/lib/libcxlmi.a" ]; then
+              echo "Found static library at /usr/local/lib/libcxlmi.a"
+            elif [ -f "${{ github.workspace }}/install-test/usr/local/lib/x86_64-linux-gnu/libcxlmi.a" ]; then
+              echo "Found static library at /usr/local/lib/x86_64-linux-gnu/libcxlmi.a"
+            else
+              echo "Static library not found in expected locations"
+              find "${{ github.workspace }}/install-test" -name "libcxlmi.a" -type f
+              exit 1
+            fi
           fi
 
   minimal-build:
