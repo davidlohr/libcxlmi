@@ -1,0 +1,214 @@
+name: Build CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  build-matrix:
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+        buildtype: [release, debug, debugoptimized]
+        library-type: [shared, static]
+        libdbus: [enabled, disabled]
+        mctpd: [codeconstruct, openbmc]
+        sanitizer: [none, address, undefined, "address,undefined"]
+        tests: [true, false]
+        exclude:
+          # Only test mctpd variants when libdbus is enabled
+          - libdbus: disabled
+            mctpd: openbmc
+          # Reduce matrix size by excluding some combinations
+          - compiler: clang
+            sanitizer: undefined
+          - tests: false
+            sanitizer: address
+          - tests: false
+            sanitizer: undefined
+          - tests: false
+            sanitizer: "address,undefined"
+
+    name: >-
+      ${{ matrix.compiler }}-${{ matrix.buildtype }}-
+      ${{ matrix.library-type }}-dbus:${{ matrix.libdbus }}-
+      ${{ matrix.libdbus == 'enabled' && format('mctpd:{0}-', matrix.mctpd) || '' }}
+      sanitizer:${{ matrix.sanitizer }}-tests:${{ matrix.tests }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install base dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build pkg-config
+
+      - name: Install compiler
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            sudo apt-get install -y clang
+          else
+            sudo apt-get install -y gcc
+          fi
+
+      - name: Install libdbus if enabled
+        if: matrix.libdbus == 'enabled'
+        run: |
+          sudo apt-get install -y libdbus-1-dev
+
+      - name: Set compiler environment
+        run: |
+          if [ "${{ matrix.compiler }}" = "clang" ]; then
+            echo "CC=clang" >> $GITHUB_ENV
+            echo "CXX=clang++" >> $GITHUB_ENV
+          else
+            echo "CC=gcc" >> $GITHUB_ENV
+            echo "CXX=g++" >> $GITHUB_ENV
+          fi
+
+      - name: Configure build
+        run: |
+          BUILD_ARGS="--buildtype=${{ matrix.buildtype }}"
+          BUILD_ARGS="$BUILD_ARGS --default-library=${{ matrix.library-type }}"
+          BUILD_ARGS="$BUILD_ARGS -Dlibdbus=${{ matrix.libdbus }}"
+          BUILD_ARGS="$BUILD_ARGS -Dtests=${{ matrix.tests }}"
+          
+          if [ "${{ matrix.libdbus }}" = "enabled" ]; then
+            BUILD_ARGS="$BUILD_ARGS -Dmctpd=${{ matrix.mctpd }}"
+          fi
+          
+          if [ "${{ matrix.sanitizer }}" != "none" ]; then
+            BUILD_ARGS="$BUILD_ARGS -Db_sanitize=${{ matrix.sanitizer }}"
+          fi
+          
+          echo "Configuring with: meson setup build $BUILD_ARGS"
+          meson setup build $BUILD_ARGS
+
+      - name: Build
+        run: |
+          meson compile -C build
+
+      - name: Run tests
+        if: matrix.tests == true
+        run: |
+          if [ "${{ matrix.sanitizer }}" != "none" ]; then
+            # For sanitizer builds, we may need to set LD_PRELOAD for address sanitizer
+            if [[ "${{ matrix.sanitizer }}" == *"address"* ]]; then
+              # Try to find libasan and set LD_PRELOAD if needed
+              LIBASAN=$(find /usr/lib* -name "libasan.so*" 2>/dev/null | head -n1 || echo "")
+              if [ -n "$LIBASAN" ]; then
+                export LD_PRELOAD="$LIBASAN"
+                echo "Set LD_PRELOAD=$LIBASAN for address sanitizer"
+              fi
+            fi
+          fi
+          meson test -C build --verbose
+
+      - name: Install test
+        run: |
+          # Test installation to a temporary directory
+          DESTDIR="${{ github.workspace }}/install-test" meson install -C build
+
+      - name: Verify installation
+        run: |
+          # Check that key files were installed
+          test -f "${{ github.workspace }}/install-test/usr/local/include/libcxlmi.h"
+          if [ "${{ matrix.library-type }}" = "shared" ]; then
+            test -f "${{ github.workspace }}/install-test/usr/local/lib/libcxlmi.so"
+          else
+            test -f "${{ github.workspace }}/install-test/usr/local/lib/libcxlmi.a"
+          fi
+
+  minimal-build:
+    runs-on: ubuntu-22.04
+    name: Minimal build test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install minimal dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build pkg-config gcc
+
+      - name: Configure minimal build
+        run: |
+          # Most minimal configuration possible
+          meson setup build --buildtype=release --default-library=static -Dlibdbus=disabled -Dtests=false
+
+      - name: Build minimal
+        run: |
+          meson compile -C build
+
+      - name: Install minimal
+        run: |
+          DESTDIR="${{ github.workspace }}/minimal-install" meson install -C build
+
+  makefile-build:
+    runs-on: ubuntu-22.04
+    name: Makefile build test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build pkg-config gcc libdbus-1-dev
+
+      - name: Test Makefile targets
+        run: |
+          # Test the Makefile wrapper
+          make
+          make clean
+          
+          # Test different configurations via Makefile
+          make purge
+          MESON_ARGS="-Dlibdbus=enabled -Dmctpd=codeconstruct" make
+          make clean
+          
+          make purge
+          MESON_ARGS="--buildtype=debug -Dlibdbus=enabled" make
+
+  cross-compile:
+    runs-on: ubuntu-22.04
+    name: ARM64 cross compilation test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install cross compilation tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y meson ninja-build pkg-config gcc-aarch64-linux-gnu
+
+      - name: Setup cross compilation
+        run: |
+          cat > cross-file.txt << EOF
+          [binaries]
+          c = 'aarch64-linux-gnu-gcc'
+          strip = 'aarch64-linux-gnu-strip'
+          pkg-config = 'pkg-config'
+
+          [host_machine]
+          system = 'linux'
+          cpu_family = 'aarch64'
+          cpu = 'aarch64'
+          endian = 'little'
+          EOF
+
+      - name: Configure cross build
+        run: |
+          meson setup build --cross-file cross-file.txt -Dlibdbus=disabled -Dtests=false
+
+      - name: Build cross
+        run: |
+          meson compile -C build
