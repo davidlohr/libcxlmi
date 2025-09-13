@@ -82,6 +82,16 @@ jobs:
           
           if [ "${{ matrix.sanitizer }}" != "none" ]; then
             BUILD_ARGS="$BUILD_ARGS -Db_sanitize=${{ matrix.sanitizer }}"
+            # For Clang with sanitizers, we need to ensure proper linking
+            if [ "${{ matrix.compiler }}" = "clang" ]; then
+              if [ "${{ matrix.sanitizer }}" = "address" ]; then
+                BUILD_ARGS="$BUILD_ARGS -Db_lundef=false"
+                export LDFLAGS="$LDFLAGS -fsanitize=address"
+              elif [ "${{ matrix.sanitizer }}" = "undefined" ]; then
+                BUILD_ARGS="$BUILD_ARGS -Db_lundef=false" 
+                export LDFLAGS="$LDFLAGS -fsanitize=undefined"
+              fi
+            fi
           fi
           
           echo "Configuring with: meson setup build $BUILD_ARGS"
