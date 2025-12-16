@@ -2,11 +2,11 @@
 
 CXL Management Interface library (libcxlmi).
 
-[![Build](https://github.com/computexpresslink/libcxlmi/actions/workflows/build.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/build.yml)
-[![Test](https://github.com/computexpresslink/libcxlmi/actions/workflows/test.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/test.yml)
-[![Analysis](https://github.com/computexpresslink/libcxlmi/actions/workflows/analysis.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/analysis.yml)
-[![ABI](https://github.com/computexpresslink/libcxlmi/actions/workflows/abi.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/abi.yml)
-[![Spelling](https://github.com/computexpresslink/libcxlmi/actions/workflows/spelling.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/spelling.yml)
+[![Build](https://github.com/davidlohr/libcxlmi/actions/workflows/build.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/build.yml)
+[![Test](https://github.com/davidlohr/libcxlmi/actions/workflows/test.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/test.yml)
+[![Analysis](https://github.com/davidlohr/libcxlmi/actions/workflows/analysis.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/analysis.yml)
+[![ABI](https://github.com/davidlohr/libcxlmi/actions/workflows/abi.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/abi.yml)
+[![Spelling](https://github.com/davidlohr/libcxlmi/actions/workflows/spelling.yml/badge.svg)](https://github.com/computexpresslink/libcxlmi/actions/workflows/spelling.yml)
 [![Coverity](https://scan.coverity.com/projects/31615/badge.svg)](https://scan.coverity.com/projects/computexpresslink-libcxlmi)
 
 CXL Management Interface utility library provides type definitions
